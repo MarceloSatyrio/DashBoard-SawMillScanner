@@ -3,9 +3,14 @@ import streamlit as st
 from datetime import date
 import git
 import os
+import shutil
+import tempfile
 
 # Definir a configuração da página
 st.set_page_config(layout="wide")
+
+# Criar um diretório temporário único para clonar o repositório
+temp_folder = tempfile.mkdtemp()
 
 # Permitir que o usuário selecione a data desejada
 data_selecionada = st.date_input("Selecione a data desejada:", date.today(), min_value=date(2020, 1, 1), max_value=date.today())
@@ -13,15 +18,18 @@ data_selecionada = st.date_input("Selecione a data desejada:", date.today(), min
 # Transformar a data selecionada em uma string no formato 'YYYY-MM-DD'
 data_formatada = data_selecionada.strftime("%Y-%m-%d")
 
-# Clonar o repositório do GitHub para uma pasta temporária
+# URL do repositório do GitHub
 repo_url = 'https://github.com/MarceloSatyrio/dashboard-SawMillScanner.git'
-temp_folder = '/tmp/git_repo'  # Pasta temporária para clonar o repositório
 
 try:
+    # Remover o diretório existente (se necessário)
+    if os.path.exists(temp_folder):
+        shutil.rmtree(temp_folder)
+
     # Clonar o repositório do GitHub para a pasta temporária
     git.Repo.clone_from(repo_url, temp_folder)
 
-    # Construir o caminho do arquivo correspondente à data selecionada
+    # Construir o nome do arquivo correspondente à data selecionada
     arquivo_selecionado = os.path.join(temp_folder, f"{data_formatada}_DadosProd.xlsx")
 
     # Carregar os dados do arquivo Excel selecionado
@@ -51,3 +59,4 @@ except FileNotFoundError:
     st.error(f"Nenhum arquivo de dados encontrado para a data {data_formatada}.")
 except Exception as e:
     st.error(f"Erro ao carregar o arquivo: {e}")
+
